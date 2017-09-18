@@ -50,13 +50,13 @@ GameBoard.prototype.canMovePiece = function (piece, column, row) {
 	var drow = row - piece.row;
 	console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
 	if (this.getPiece(column, row)) {
-		console.log('space occupied');
+		console.log('cannot move piece - space occupied');
 		answer = false;
 	} else if (Math.abs(dcolumn)!=1) {
-		console.log('not dcolumn 1');
+		console.log('cannot move piece - not dcolumn 1');
 		answer = false;
 	} else if (drow!=piece.rowDirection) {
-		console.log('drow != rowDirection ' + piece.rowDirection);
+		console.log('cannot move piece - drow != rowDirection ' + piece.rowDirection);
 		answer = false;
 	} else {
 		answer = true;
