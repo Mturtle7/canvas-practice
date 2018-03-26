@@ -1,7 +1,4 @@
-// Set up!
-var a_canvas = document.getElementById("a");
-
-//draw the checkerboard
+// draw the checkerboard
 function GameBoard(canvas) {
 	var gb = this;
 	this.canvas = canvas;
@@ -25,15 +22,19 @@ function GameBoard(canvas) {
 		var column = Math.floor(x/(gb.size/8));
 		var row = Math.floor(y/(gb.size/8));
 		//alert("got column = " + column + ", row = " + row);
-		if (gb.selectedPiece) {
-			console.log("moving piece");
-			gb.movePiece(column, row);
-		} else {
-			console.log("selected");
+		if (!gb.selectedPiece) {
+			console.log("piece selected");
 			gb.selectedPiece = gb.getPiece(column, row);
-		}
+			gb.draw();
+		} else if (gb.selectedPiece.column == column && gb.selectedPiece.row == row) {
+			gb.deselect();
+		} else {
+			gb.movePiece(column, row);
+		
+		} 
 	});
 }
+
 GameBoard.prototype.getPiece = function (column, row) {
 	var thatPiece = null;
 	for (var i = 0; i <this.pieces.length; i++) {
@@ -44,45 +45,72 @@ GameBoard.prototype.getPiece = function (column, row) {
 	return thatPiece;
 };
 
-GameBoard.prototype.canMovePiece = function (piece, column, row) {
-	var answer;
+GameBoard.prototype.deselect = function() {
+	console.log("deselecting");
+	this.selectedPiece = null;
+	this.draw();
+}
+
+GameBoard.prototype.canMoveTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
 	console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
 	if (this.getPiece(column, row)) {
 		console.log('cannot move piece - space occupied');
-		answer = false;
+		return false;
 	} else if (Math.abs(dcolumn)!=1) {
 		console.log('cannot move piece - not dcolumn 1');
-		answer = false;
+		return false;
 	} else if (drow!=piece.rowDirection) {
 		console.log('cannot move piece - drow != rowDirection ' + piece.rowDirection);
-		answer = false;
+		return false;
 	} else {
-		answer = true;
+		return true;
 	}
-	return answer;
+};
+
+GameBoard.prototype.canJumpTo = function (piece, column, row) {
+	var dcolumn = column - piece.column;
+	var drow = row - piece.row;
+	if (this.getPiece(column, row)) {
+		console.log('cannot jump there - space occupied');
+		return false;
+	} else if (Math.abs(dcolumn)!=2) {
+		console.log('cannot jump there - dcolumn!=2');
+		return false;
+	} else if ((drow/2)!=piece.rowDirection) {
+		console.log('cannot jump there - jump is in wrong direction'); 
+		return false;
+	}
+	var jumpedPiece = this.getPiece(column-dcolumn/2, row-drow/2);
+	if (!jumpedPiece) {
+		return false;
+	}
 };
 
 GameBoard.prototype.movePiece = function(column, row) {
-	if (this.canMovePiece(this.selectedPiece, column, row)) {
+	if (!this.selectedPiece) {
+		console.log("cannot move piece - no piece selected");
+	}
+	if (this.canMoveTo(this.selectedPiece, column, row)) {
+		console.log("moving piece");
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
-		this.selectedPiece = null;
-		this.draw();
+		this.deselect();
 	} else {
 		console.log('cannot move piece to ' + column + ', ' + row);
 	}
 };
 
 GameBoard.prototype.draw = function() {
-//draw squares
+	//blank slate
 	this.context.fillStyle = "white";
 	this.context.fillRect(0, 0, this.size, this.size);
+	//draw squares
 	var b = false;
 	this.context.fillStyle = "grey";
 	for (var ix = 0; ix < 8; ix++) {
-		for (var iy = 0; iy < 8; iy++) {
+	 	for (var iy = 0; iy < 8; iy++) {
 			if (b) {
 				this.context.fillRect(ix*this.size/8, iy*this.size/8, this.size/8, this.size/8);
 			}
@@ -90,7 +118,12 @@ GameBoard.prototype.draw = function() {
 		}
 		b = !b;
 	}
-//draw current pieces
+	console.log("found", this.selectedPiece);
+	if (this.selectedPiece) {
+		this.context.fillStyle = "green";
+		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
+	}
+	//draw current pieces
 	for (var i = 0; i < this.pieces.length; i++) {
 		this.drawPiece(this.pieces[i]);
 	}
@@ -115,6 +148,8 @@ GameBoard.prototype.drawPiece = function(checker) {
 };
 
 //------------------------------------------
+// Set up!
+var a_canvas = document.getElementById("a");
 var checkBoard = new GameBoard(a_canvas);
 checkBoard.draw();
 
