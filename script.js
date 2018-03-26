@@ -1,4 +1,5 @@
 // draw the checkerboard
+"use strict";
 function GameBoard(canvas) {
 	var gb = this;
 	this.canvas = canvas;
@@ -89,6 +90,7 @@ GameBoard.prototype.canJumpTo = function (piece, column, row) {
 	if (!jumpedPiece) {
 		return false;
 	}
+	return true
 };
 
 GameBoard.prototype.movePiece = function(column, row) {
