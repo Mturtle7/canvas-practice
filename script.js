@@ -5,14 +5,6 @@ function GameBoard(canvas) {
 	this.context = canvas.getContext("2d");
 	this.size = Math.min(canvas.width, canvas.height);
 	this.pieces = [];
-	for (var column = 0; column < 8; column+=2) {
-		this.pieces.push(new Checker(column, 1, "red", 1));
-		this.pieces.push(new Checker(column, 5, "black", -1));
-		this.pieces.push(new Checker(column, 7, "black", -1));
-		this.pieces.push(new Checker(column+1, 0, "red", 1));
-		this.pieces.push(new Checker(column+1, 2, "red", 1));
-		this.pieces.push(new Checker(column+1, 6, "black", -1));
-	}
 	this.selectedPiece = null;
 	//how to select & move pieces
 	canvas.addEventListener('click', function(evt) {
@@ -33,6 +25,17 @@ function GameBoard(canvas) {
 		
 		} 
 	});
+}
+
+GameBoard.prototype.initializePieces = function() {
+	for (var column = 0; column < 8; column+=2) {
+		this.pieces.push(new Checker(column, 1, "red", 1));
+		this.pieces.push(new Checker(column, 5, "black", -1));
+		this.pieces.push(new Checker(column, 7, "black", -1));
+		this.pieces.push(new Checker(column+1, 0, "red", 1));
+		this.pieces.push(new Checker(column+1, 2, "red", 1));
+		this.pieces.push(new Checker(column+1, 6, "black", -1));
+	}
 }
 
 GameBoard.prototype.getPiece = function (column, row) {
@@ -151,6 +154,7 @@ GameBoard.prototype.drawPiece = function(checker) {
 // Set up!
 var a_canvas = document.getElementById("a");
 var checkBoard = new GameBoard(a_canvas);
+checkBoard.initializePieces();
 checkBoard.draw();
 
 /*
