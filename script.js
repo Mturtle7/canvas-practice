@@ -15,19 +15,22 @@ function GameBoard(canvas) {
 		var column = Math.floor(x/(gb.size/8));
 		var row = Math.floor(y/(gb.size/8));
 		//alert("got column = " + column + ", row = " + row);
-		if (!gb.selectedPiece) {
-			console.log("piece selected");
-			gb.selectedPiece = gb.getPiece(column, row);
-			gb.draw();
-		} else if (gb.selectedPiece.column == column && gb.selectedPiece.row == row) {
-			gb.deselect();
-		} else {
-			gb.movePiece(column, row);
-		
-		} 
+		gb.clickOnSquare(column, row);
 	});
 }
 
+GameBoard.prototype.clickOnSquare= function(column, row) {
+	if (!this.selectedPiece) {
+			console.log("piece selected");
+			this.selectedPiece = this.getPiece(column, row);
+			this.draw();
+		} else if (this.selectedPiece.column == column && this.selectedPiece.row == row) {
+			this.deselect();
+		} else {
+			this.stepPiece(column, row);
+		
+		} 
+}
 GameBoard.prototype.initializePieces = function() {
 	for (var column = 0; column < 8; column+=2) {
 		this.pieces.push(new Checker(column, 1, "red", 1));
@@ -55,18 +58,18 @@ GameBoard.prototype.deselect = function() {
 	this.draw();
 }
 
-GameBoard.prototype.canMoveTo = function (piece, column, row) {
+GameBoard.prototype.canStepTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
 	console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
 	if (this.getPiece(column, row)) {
-		console.log('cannot move piece - space occupied');
+		console.log('cannot step piece - space occupied');
 		return false;
 	} else if (Math.abs(dcolumn)!=1) {
-		console.log('cannot move piece - not dcolumn 1');
+		console.log('cannot step piece - not dcolumn 1');
 		return false;
 	} else if (drow!=piece.rowDirection) {
-		console.log('cannot move piece - drow != rowDirection ' + piece.rowDirection);
+		console.log('cannot step piece - drow != rowDirection ' + piece.rowDirection);
 		return false;
 	} else {
 		return true;
@@ -93,18 +96,26 @@ GameBoard.prototype.canJumpTo = function (piece, column, row) {
 	return true
 };
 
-GameBoard.prototype.movePiece = function(column, row) {
+GameBoard.prototype.stepPiece = function(column, row) {
 	if (!this.selectedPiece) {
-		console.log("cannot move piece - no piece selected");
+		console.log("cannot step piece - no piece selected");
 	}
-	if (this.canMoveTo(this.selectedPiece, column, row)) {
+	if (this.canStepTo(this.selectedPiece, column, row)) {
 		console.log("moving piece");
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		this.deselect();
 	} else {
-		console.log('cannot move piece to ' + column + ', ' + row);
+		console.log('cannot step piece to ' + column + ', ' + row);
 	}
+};
+
+GameBoard.prototype.jumpPiece = function(column, row) {
+	//will be a function for jumping, separate from stepping
+};
+
+GameBoard.prototype.movePiece = function(column, row) {
+	//will call both jumpPiece and stepPiece
 };
 
 GameBoard.prototype.draw = function() {
