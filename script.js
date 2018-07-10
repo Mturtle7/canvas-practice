@@ -9,6 +9,7 @@ function GameBoard(canvas) {
 	this.pieces = [];
 	this.selectedPiece = null;
 	this.currentTurn = "red";
+	this.stepNmbr = 0;
 	//how to select & move pieces
 	canvas.addEventListener('click', function(evt) {
 		var rect = canvas.getBoundingClientRect();
@@ -27,6 +28,7 @@ function GameBoard(canvas) {
 			gb.currentTurn = "red";
 			console.log("red's turn");
 		}
+		gb.stepNmbr = 0;
 	});
 }
 
@@ -89,8 +91,11 @@ GameBoard.prototype.deselect = function() {
 GameBoard.prototype.canStepTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
-	console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
-	if (this.getPiece(column, row)) {
+	//console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
+	if (this.stepNmbr > 0) {
+		console.log("cannot step piece - already stepped this turn")
+		return false;
+	} else if (this.getPiece(column, row)) {
 		console.log('cannot step piece - space occupied');
 		return false;
 	} else if (Math.abs(dcolumn)!=1) {
@@ -105,10 +110,12 @@ GameBoard.prototype.canStepTo = function (piece, column, row) {
 };
 
 GameBoard.prototype.canJumpTo = function (piece, column, row) {
-	
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
-	if (this.getPiece(column, row)) {
+	if (this.stepNmbr > 0) {
+		console.log("cannot step piece - already stepped this turn")
+		return false;
+	} else if (this.getPiece(column, row)) {
 		console.log('cannot jump there - space occupied');
 		return false;
 	} else if (Math.abs(dcolumn)!=2) {
@@ -136,6 +143,7 @@ GameBoard.prototype.stepPiece = function(column, row) {
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		this.deselect();
+		this.stepNmbr++;
 	} else {
 		console.log('cannot step piece to ' + column + ', ' + row);
 	}
