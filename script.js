@@ -1,5 +1,6 @@
-// draw the checkerboard
 "use strict";
+
+// draw the checkerboard
 function GameBoard(canvas) {
 	var gb = this;
 	this.canvas = canvas;
@@ -19,6 +20,7 @@ function GameBoard(canvas) {
 	});
 }
 
+//click -> select a new piece, deselect piece, or move slected piece
 GameBoard.prototype.clickOnSquare= function(column, row) {
 	if (!this.selectedPiece) {
 			console.log("piece selected");
@@ -27,10 +29,12 @@ GameBoard.prototype.clickOnSquare= function(column, row) {
 		} else if (this.selectedPiece.column == column && this.selectedPiece.row == row) {
 			this.deselect();
 		} else {
-			this.stepPiece(column, row);
+			this.movePiece(column, row);
 		
 		} 
 }
+
+//lay out starting pieces both sides
 GameBoard.prototype.initializePieces = function() {
 	for (var column = 0; column < 8; column+=2) {
 		this.pieces.push(new Checker(column, 1, "red", 1));
@@ -42,6 +46,7 @@ GameBoard.prototype.initializePieces = function() {
 	}
 }
 
+//get a piece object based on location
 GameBoard.prototype.getPiece = function (column, row) {
 	var thatPiece = null;
 	for (var i = 0; i <this.pieces.length; i++) {
@@ -52,11 +57,22 @@ GameBoard.prototype.getPiece = function (column, row) {
 	return thatPiece;
 };
 
+GameBoard.prototype.removePiece = function (column, row) {
+	var index = null;
+	for (var i = 0; i <this.pieces.length; i++) {
+		if (this.pieces[i].column == column && this.pieces[i].row == row) {
+			index = i;
+		}
+	} 
+	this.pieces.splice(index, 1);
+}
+
 GameBoard.prototype.deselect = function() {
-	console.log("deselecting");
+	//console.log("deselecting");
 	this.selectedPiece = null;
 	this.draw();
 }
+
 
 GameBoard.prototype.canStepTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
@@ -77,6 +93,7 @@ GameBoard.prototype.canStepTo = function (piece, column, row) {
 };
 
 GameBoard.prototype.canJumpTo = function (piece, column, row) {
+	
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
 	if (this.getPiece(column, row)) {
@@ -89,19 +106,21 @@ GameBoard.prototype.canJumpTo = function (piece, column, row) {
 		console.log('cannot jump there - jump is in wrong direction'); 
 		return false;
 	}
-	var jumpedPiece = this.getPiece(column-dcolumn/2, row-drow/2);
-	if (!jumpedPiece) {
+	var jumpedPiece = this.getPiece(column-(dcolumn/2), row-(drow/2));
+	if (!jumpedPiece || (jumpedPiece.color == piece.color)) {
 		return false;
 	}
 	return true
+
 };
 
 GameBoard.prototype.stepPiece = function(column, row) {
 	if (!this.selectedPiece) {
 		console.log("cannot step piece - no piece selected");
+		return;
 	}
 	if (this.canStepTo(this.selectedPiece, column, row)) {
-		console.log("moving piece");
+		//console.log("moving piece");
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		this.deselect();
@@ -112,10 +131,35 @@ GameBoard.prototype.stepPiece = function(column, row) {
 
 GameBoard.prototype.jumpPiece = function(column, row) {
 	//will be a function for jumping, separate from stepping
+	if (!this.selectedPiece) {
+		console.log("cannot jump piece - no piece selected");
+		return;
+	}
+	if (this.canJumpTo(this.selectedPiece, column, row)) {
+		console.log("removing piece");
+		this.removePiece((this.selectedPiece.column + column)/2, (this.selectedPiece.row + row)/2);
+		console.log("moving piece");
+		this.selectedPiece.column = column;
+		this.selectedPiece.row = row;
+		this.deselect();
+	} else {
+		console.log('cannot jump piece to ' + column + ', ' + row);
+	}
 };
 
 GameBoard.prototype.movePiece = function(column, row) {
-	//will call both jumpPiece and stepPiece
+	//jump, step, or do nothing
+	if (this.canJumpTo(this.selectedPiece, column, row)) {
+		this.jumpPiece(column, row);
+		console.log("can jump");
+	} else if (this.canStepTo(this.selectedPiece, column, row)) {
+		this.stepPiece(column, row);
+		console.log("can step");
+	} else {
+		console.log("invalid move");
+	}
+	
+
 };
 
 GameBoard.prototype.draw = function() {
@@ -134,7 +178,7 @@ GameBoard.prototype.draw = function() {
 		}
 		b = !b;
 	}
-	console.log("found", this.selectedPiece);
+	//console.log("found", this.selectedPiece);
 	if (this.selectedPiece) {
 		this.context.fillStyle = "green";
 		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
