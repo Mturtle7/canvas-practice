@@ -8,6 +8,7 @@ function GameBoard(canvas) {
 	this.size = Math.min(canvas.width, canvas.height);
 	this.pieces = [];
 	this.selectedPiece = null;
+	this.currentTurn = "red";
 	//how to select & move pieces
 	canvas.addEventListener('click', function(evt) {
 		var rect = canvas.getBoundingClientRect();
@@ -17,6 +18,15 @@ function GameBoard(canvas) {
 		var row = Math.floor(y/(gb.size/8));
 		//alert("got column = " + column + ", row = " + row);
 		gb.clickOnSquare(column, row);
+	});
+	canvas.addEventListener('dblclick', function(evt) {
+		if (gb.currentTurn == "red") {
+			gb.currentTurn = "black";
+			console.log("black's turn");
+		} else if (gb.currentTurn == "black") {
+			gb.currentTurn = "red";
+			console.log("red's turn");
+		}
 	});
 }
 
@@ -44,6 +54,8 @@ GameBoard.prototype.initializePieces = function() {
 		this.pieces.push(new Checker(column+1, 2, "red", 1));
 		this.pieces.push(new Checker(column+1, 6, "black", -1));
 	}
+	//also set first turn?
+	this.currentTurn = "red";
 }
 
 //get a piece object based on location
@@ -149,7 +161,9 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 
 GameBoard.prototype.movePiece = function(column, row) {
 	//jump, step, or do nothing
-	if (this.canJumpTo(this.selectedPiece, column, row)) {
+	if (this.currentTurn != this.selectedPiece.color) {
+		console.log("not " + this.selectedPiece.color + "'s turn to move")
+	} else if (this.canJumpTo(this.selectedPiece, column, row)) {
 		this.jumpPiece(column, row);
 		console.log("can jump");
 	} else if (this.canStepTo(this.selectedPiece, column, row)) {
@@ -157,9 +171,7 @@ GameBoard.prototype.movePiece = function(column, row) {
 		console.log("can step");
 	} else {
 		console.log("invalid move");
-	}
-	
-
+	}	
 };
 
 GameBoard.prototype.draw = function() {
