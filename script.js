@@ -9,7 +9,7 @@ function GameBoard(canvas) {
 	this.pieces = [];
 	this.selectedPiece = null;
 	this.currentTurn = "red";
-	this.stepNmbr = 0;
+	this.stepNumber = 0;
 	//how to select & move pieces
 	canvas.addEventListener('click', function(evt) {
 		var rect = canvas.getBoundingClientRect();
@@ -23,12 +23,14 @@ function GameBoard(canvas) {
 	canvas.addEventListener('dblclick', function(evt) {
 		if (gb.currentTurn == "red") {
 			gb.currentTurn = "black";
+			gb.draw();
 			console.log("black's turn");
 		} else if (gb.currentTurn == "black") {
 			gb.currentTurn = "red";
+			gb.draw();
 			console.log("red's turn");
 		}
-		gb.stepNmbr = 0;
+		gb.stepNumber = 0;
 	});
 }
 
@@ -92,7 +94,7 @@ GameBoard.prototype.canStepTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
 	//console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
-	if (this.stepNmbr > 0) {
+	if (this.stepNumber > 0) {
 		console.log("cannot step piece - already stepped this turn")
 		return false;
 	} else if (this.getPiece(column, row)) {
@@ -112,7 +114,7 @@ GameBoard.prototype.canStepTo = function (piece, column, row) {
 GameBoard.prototype.canJumpTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
-	if (this.stepNmbr > 0) {
+	if (this.stepNumber > 0) {
 		console.log("cannot step piece - already stepped this turn")
 		return false;
 	} else if (this.getPiece(column, row)) {
@@ -143,7 +145,7 @@ GameBoard.prototype.stepPiece = function(column, row) {
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		this.deselect();
-		this.stepNmbr++;
+		this.stepNumber++;
 	} else {
 		console.log('cannot step piece to ' + column + ', ' + row);
 	}
@@ -218,7 +220,15 @@ function Checker(column, row, color, direction) {
 }
 
 GameBoard.prototype.drawPiece = function(checker) {
-	this.context.fillStyle = checker.color;
+	if ((checker.color == "red") && (this.currentTurn == "red")) {
+		this.context.fillStyle = "tomato";
+	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
+		this.context.fillStyle = "red";
+	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
+		this.context.fillStyle = "darkslategrey";
+	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
+		this.context.fillStyle = "black";
+	}
 	this.context.beginPath();
 	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
 	this.context.closePath();
