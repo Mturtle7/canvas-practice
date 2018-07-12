@@ -2,8 +2,8 @@
 
 /*
 to-do list:
+-kings
 -flashy win condition
--only select your own pieces, before you finish moving
 -must jump if able
 -3D display
 */
@@ -32,11 +32,11 @@ function GameBoard(canvas) {
 		if (gb.moveType) {
 			if (gb.currentTurn == "red") {
 				gb.currentTurn = "black";
-				gb.draw();
+				gb.deselect();
 				console.log("black's turn");
 			} else if (gb.currentTurn == "black") {
 				gb.currentTurn = "red";
-				gb.draw();
+				gb.deselect();
 				console.log("red's turn");
 			}
 			gb.moveType = null;
@@ -183,7 +183,8 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 		console.log("moving piece");
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
-		this.deselect();
+		//this.deselect();
+		this.draw();
 		this.moveType = "jump";
 	} else {
 		console.log('cannot jump piece to ' + column + ', ' + row);
