@@ -1,5 +1,14 @@
 "use strict";
 
+/*
+to-do list:
+-flashy win condition
+-only select your own pieces, before you move
+-ignore turn end if player has not moved
+-must jump if able
+-3D display
+*/
+
 // draw the checkerboard
 function GameBoard(canvas) {
 	var gb = this;
@@ -9,7 +18,7 @@ function GameBoard(canvas) {
 	this.pieces = [];
 	this.selectedPiece = null;
 	this.currentTurn = "red";
-	this.stepNumber = 0;
+	this.moveType = null;
 	//how to select & move pieces
 	canvas.addEventListener('click', function(evt) {
 		var rect = canvas.getBoundingClientRect();
@@ -21,18 +30,20 @@ function GameBoard(canvas) {
 		gb.clickOnSquare(column, row);
 	});
 	canvas.addEventListener('dblclick', function(evt) {
-		if (gb.currentTurn == "red") {
-			gb.currentTurn = "black";
-			gb.draw();
-			console.log("black's turn");
-		} else if (gb.currentTurn == "black") {
-			gb.currentTurn = "red";
-			gb.draw();
-			console.log("red's turn");
+		if (gb.moveType) {
+			if (gb.currentTurn == "red") {
+				gb.currentTurn = "black";
+				gb.draw();
+				console.log("black's turn");
+			} else if (gb.currentTurn == "black") {
+				gb.currentTurn = "red";
+				gb.draw();
+				console.log("red's turn");
+			}
+			gb.moveType = null;
 		}
-		gb.stepNumber = 0;
 	});
-}
+} 
 
 //click -> select a new piece, deselect piece, or move slected piece
 GameBoard.prototype.clickOnSquare= function(column, row) {
@@ -73,6 +84,7 @@ GameBoard.prototype.getPiece = function (column, row) {
 	return thatPiece;
 };
 
+//capture a piece (mainly used when jumping)
 GameBoard.prototype.removePiece = function (column, row) {
 	var index = null;
 	for (var i = 0; i <this.pieces.length; i++) {
@@ -83,19 +95,20 @@ GameBoard.prototype.removePiece = function (column, row) {
 	this.pieces.splice(index, 1);
 }
 
+//simple deselect
 GameBoard.prototype.deselect = function() {
 	//console.log("deselecting");
 	this.selectedPiece = null;
 	this.draw();
 }
 
-
+//test legality of stepping a given piece to a given place
 GameBoard.prototype.canStepTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
 	//console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
-	if (this.stepNumber > 0) {
-		console.log("cannot step piece - already stepped this turn")
+	if (this.moveType != null) {
+		console.log("cannot step piece - moveType = " + this.moveType)
 		return false;
 	} else if (this.getPiece(column, row)) {
 		console.log('cannot step piece - space occupied');
@@ -111,11 +124,12 @@ GameBoard.prototype.canStepTo = function (piece, column, row) {
 	}
 };
 
+//test legality of jumping a given piece to a given place
 GameBoard.prototype.canJumpTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
-	if (this.stepNumber > 0) {
-		console.log("cannot step piece - already stepped this turn")
+	if (this.moveType == "step") {
+		console.log("cannot jump with piece - moveType = " + this.moveType)
 		return false;
 	} else if (this.getPiece(column, row)) {
 		console.log('cannot jump there - space occupied');
@@ -135,6 +149,7 @@ GameBoard.prototype.canJumpTo = function (piece, column, row) {
 
 };
 
+//attampts to step a piece one space (diagonally) forward
 GameBoard.prototype.stepPiece = function(column, row) {
 	if (!this.selectedPiece) {
 		console.log("cannot step piece - no piece selected");
@@ -145,12 +160,13 @@ GameBoard.prototype.stepPiece = function(column, row) {
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		this.deselect();
-		this.stepNumber++;
+		this.moveType = "step";
 	} else {
 		console.log('cannot step piece to ' + column + ', ' + row);
 	}
 };
 
+//attampts to jump a piece (diagonally) over another, capturing it
 GameBoard.prototype.jumpPiece = function(column, row) {
 	//will be a function for jumping, separate from stepping
 	if (!this.selectedPiece) {
@@ -164,13 +180,14 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		this.deselect();
+		this.moveType = "jump";
 	} else {
 		console.log('cannot jump piece to ' + column + ', ' + row);
 	}
 };
 
+//jump, step, or do nothing
 GameBoard.prototype.movePiece = function(column, row) {
-	//jump, step, or do nothing
 	if (this.currentTurn != this.selectedPiece.color) {
 		console.log("not " + this.selectedPiece.color + "'s turn to move")
 	} else if (this.canJumpTo(this.selectedPiece, column, row)) {
@@ -184,6 +201,7 @@ GameBoard.prototype.movePiece = function(column, row) {
 	}	
 };
 
+//draw all squares and pieces
 GameBoard.prototype.draw = function() {
 	//blank slate
 	this.context.fillStyle = "white";
@@ -200,7 +218,6 @@ GameBoard.prototype.draw = function() {
 		}
 		b = !b;
 	}
-	//console.log("found", this.selectedPiece);
 	if (this.selectedPiece) {
 		this.context.fillStyle = "green";
 		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
@@ -219,15 +236,16 @@ function Checker(column, row, color, direction) {
 	//positive 1 means down the y-axis, negative 1 means up
 }
 
+
 GameBoard.prototype.drawPiece = function(checker) {
 	if ((checker.color == "red") && (this.currentTurn == "red")) {
-		this.context.fillStyle = "tomato";
-	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
 		this.context.fillStyle = "red";
+	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
+		this.context.fillStyle = "tomato";
 	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
-		this.context.fillStyle = "darkslategrey";
-	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
 		this.context.fillStyle = "black";
+	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
+		this.context.fillStyle = "darkslategrey";
 	}
 	this.context.beginPath();
 	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
@@ -249,6 +267,8 @@ Rules: 	-pieces move to the spaces diagonally in front of them
 	-if a piece can jump over an opposing piece (in one of the spaces diagonally in front of it) it MUST take the jump
 	-if >1 jump is available, player can choose which one to take
 */
+
+
 
 
 
