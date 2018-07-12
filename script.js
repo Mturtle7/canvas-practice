@@ -3,8 +3,7 @@
 /*
 to-do list:
 -flashy win condition
--only select your own pieces, before you move
--ignore turn end if player has not moved
+-only select your own pieces, before you finish moving
 -must jump if able
 -3D display
 */
@@ -47,16 +46,21 @@ function GameBoard(canvas) {
 
 //click -> select a new piece, deselect piece, or move slected piece
 GameBoard.prototype.clickOnSquare= function(column, row) {
+	var target = this.getPiece(column, row);
+	
 	if (!this.selectedPiece) {
+		if (target && (target.color == this.currentTurn) && (!this.moveType)) {
 			console.log("piece selected");
 			this.selectedPiece = this.getPiece(column, row);
 			this.draw();
-		} else if (this.selectedPiece.column == column && this.selectedPiece.row == row) {
-			this.deselect();
 		} else {
-			this.movePiece(column, row);
-		
-		} 
+			console.log("cannot select")
+		}
+	} else if (this.selectedPiece.column == column && this.selectedPiece.row == row) {
+		this.deselect();
+	} else {
+		this.movePiece(column, row);
+	} 
 }
 
 //lay out starting pieces both sides
