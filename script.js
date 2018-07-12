@@ -16,19 +16,38 @@ function GameBoard(canvas) {
 	this.size = Math.min(canvas.width, canvas.height);
 	this.pieces = [];
 	this.selectedPiece = null;
-	this.currentTurn = "red";
 	this.moveType = null;
+	this.currentTurn = "red";
+	this.winner = null;
 	//how to select & move pieces
 	canvas.addEventListener('click', function(evt) {
+		if (gb.hasGameEnded()) {
+			//console.log("game has ended");
+			return;
+		}
 		var rect = canvas.getBoundingClientRect();
 		var x = evt.clientX - rect.left;
 		var y = evt.clientY - rect.top;
 		var column = Math.floor(x/(gb.size/8));
 		var row = Math.floor(y/(gb.size/8));
+		
 		//alert("got column = " + column + ", row = " + row);
 		gb.clickOnSquare(column, row);
+		
 	});
 	canvas.addEventListener('dblclick', function(evt) {
+		if (gb.hasGameEnded()) {
+			gb.context.fillStyle = "green";
+			gb.context.fillRect(0, 0, gb.size, gb.size);
+			
+			gb.context.fillStyle = "black";
+			gb.context.font = "40px serif";
+			gb.context.textAlign = "center";
+			gb.context.fillText(gb.winner + " victory!", gb.size/2, gb.size/2);
+			//console.log("game has ended");
+			return;
+		}
+		 
 		if (gb.moveType) {
 			if (gb.currentTurn == "red") {
 				gb.currentTurn = "black";
@@ -41,6 +60,7 @@ function GameBoard(canvas) {
 			}
 			gb.moveType = null;
 		}
+		
 	});
 } 
 
@@ -104,6 +124,25 @@ GameBoard.prototype.deselect = function() {
 	//console.log("deselecting");
 	this.selectedPiece = null;
 	this.draw();
+}
+
+//return true if either side has won, and set victory color accordingly; otherwise, false
+GameBoard.prototype.hasGameEnded = function() {
+	/*
+	if (this.selectedPiece) {
+		this.winner = "black";
+		return true;
+	}
+	*/
+	var firstColor = this.pieces[0].color;
+	console.log("firstColor = " + firstColor);
+	for (var i = 0; i <this.pieces.length; i++) {
+		if (this.pieces[i].color != firstColor) {
+			return false;
+		}
+	}
+	this.winner = firstColor;
+	return true;
 }
 
 //test legality of stepping a given piece to a given place
@@ -183,7 +222,6 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 		console.log("moving piece");
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
-		//this.deselect();
 		this.draw();
 		this.moveType = "jump";
 	} else {
@@ -231,6 +269,8 @@ GameBoard.prototype.draw = function() {
 	for (var i = 0; i < this.pieces.length; i++) {
 		this.drawPiece(this.pieces[i]);
 	}
+	//this.context.fillStyle = "blue";
+	//this.context.fillRect(0, 0, this.size, this.size);
 };
 
 function Checker(column, row, color, direction) {
