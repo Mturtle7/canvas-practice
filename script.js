@@ -2,8 +2,6 @@
 
 /*
 to-do list:
--kings
--flashy win condition
 -must jump if able
 -3D display
 */
@@ -86,12 +84,12 @@ GameBoard.prototype.clickOnSquare= function(column, row) {
 //lay out starting pieces both sides
 GameBoard.prototype.initializePieces = function() {
 	for (var column = 0; column < 8; column+=2) {
-		this.pieces.push(new Checker(column, 1, "red", 1));
-		this.pieces.push(new Checker(column, 5, "black", -1));
-		this.pieces.push(new Checker(column, 7, "black", -1));
-		this.pieces.push(new Checker(column+1, 0, "red", 1));
-		this.pieces.push(new Checker(column+1, 2, "red", 1));
-		this.pieces.push(new Checker(column+1, 6, "black", -1));
+		this.pieces.push(new Checker(column, 1, "red", 1, false));
+		this.pieces.push(new Checker(column, 5, "black", -1, true));
+		this.pieces.push(new Checker(column, 7, "black", -1, false));
+		this.pieces.push(new Checker(column+1, 0, "red", 1, false));
+		this.pieces.push(new Checker(column+1, 2, "red", 1, true));
+		this.pieces.push(new Checker(column+1, 6, "black", -1, false));
 	}
 	//also set first turn?
 	this.currentTurn = "red";
@@ -159,7 +157,7 @@ GameBoard.prototype.canStepTo = function (piece, column, row) {
 	} else if (Math.abs(dcolumn)!=1) {
 		console.log('cannot step piece - not dcolumn 1');
 		return false;
-	} else if (drow!=piece.rowDirection) {
+	} else if ((drow!=piece.rowDirection) && (!piece.isKing)) {
 		console.log('cannot step piece - drow != rowDirection ' + piece.rowDirection);
 		return false;
 	} else {
@@ -180,7 +178,7 @@ GameBoard.prototype.canJumpTo = function (piece, column, row) {
 	} else if (Math.abs(dcolumn)!=2) {
 		console.log('cannot jump there - dcolumn!=2');
 		return false;
-	} else if ((drow/2)!=piece.rowDirection) {
+	} else if (((drow/2)!=piece.rowDirection) && (!piece.isKing)) {
 		console.log('cannot jump there - jump is in wrong direction'); 
 		return false;
 	}
@@ -231,17 +229,23 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 
 //jump, step, or do nothing
 GameBoard.prototype.movePiece = function(column, row) {
-	if (this.currentTurn != this.selectedPiece.color) {
-		console.log("not " + this.selectedPiece.color + "'s turn to move")
-	} else if (this.canJumpTo(this.selectedPiece, column, row)) {
+	var movingPiece = this.selectedPiece;
+	if (this.currentTurn != movingPiece.color) {
+		console.log("not " + movingPiece.color + "'s turn to move")
+		return;
+	} else if (this.canJumpTo(movingPiece, column, row)) {
 		this.jumpPiece(column, row);
 		console.log("can jump");
-	} else if (this.canStepTo(this.selectedPiece, column, row)) {
+	} else if (this.canStepTo(movingPiece, column, row)) {
 		this.stepPiece(column, row);
 		console.log("can step");
 	} else {
 		console.log("invalid move");
+		return;
 	}	
+	if (((movingPiece.color == "red") && (row == 7)) || ((movingPiece.color == "black") && (row == 0))) {
+		movingPiece.isKing = true;
+	}
 };
 
 //draw all squares and pieces
@@ -273,11 +277,12 @@ GameBoard.prototype.draw = function() {
 	//this.context.fillRect(0, 0, this.size, this.size);
 };
 
-function Checker(column, row, color, direction) {
+function Checker(column, row, color, direction, king) {
 	this.column = column;
 	this.row = row;
 	this.color = color;
 	this.rowDirection = direction;
+	this.isKing = king;
 	//positive 1 means down the y-axis, negative 1 means up
 }
 
@@ -296,8 +301,17 @@ GameBoard.prototype.drawPiece = function(checker) {
 	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
 	this.context.closePath();
 	this.context.fill();
-	this.context.lineWidth = 2;
+	this.context.strokeStyle = "black";
 	this.context.stroke();
+	if (checker.isKing) {
+		this.context.beginPath();
+		this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/20), 0, 2*Math.PI);
+		this.context.closePath();
+		this.context.fill();
+		this.context.strokeStyle = "white";
+		this.context.stroke();
+	}
+	
 };
 
 //------------------------------------------
