@@ -15,10 +15,27 @@ function testGetPiece() {}
 
 function testDeselect() {}
 
-function testCanMoveTo() {}
+function testCanStepTo() {
+	// Set up!
+	var actual;
+	var test_canvas = {width: 8, height: 8, getContext: function () {}, addEventListener: function () {}};
+	var checkBoard = new GameBoard(test_canvas);
+	checkBoard.pieces.push(new Checker(2, 1, "red", 1));
+	checkBoard.selectedPiece = checkBoard.getPiece(2, 1);
+
+	//step directly in front
+	actual = checkBoard.canStepTo(checkBoard.selectedPiece, 2, 2);
+	test(false, actual);
+
+	//step directly to the side
+	actual = checkBoard.canStepTo(checkBoard.selectedPiece, 3, 1);
+	test(false, actual);
+
+	//step forward multiple spaces and 
+}
 
 function testCanJumpTo() {
-	/*
+	
 	// Set up!
 	var actual;
 	var test_canvas = {width: 8, height: 8, getContext: function () {}, addEventListener: function () {}};
@@ -50,7 +67,7 @@ function testCanJumpTo() {
 	//jump long directly forwards
 	actual = checkBoard.canJumpTo(checkBoard.selectedPiece, 2, 5);
 	test(false, actual);
-	*/
+	
 }
 //testCanJumpTo();
 

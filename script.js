@@ -2,7 +2,7 @@
 
 /*
 to-do list:
--must jump if able
+-must jump if able (?)
 -3D display
 */
 
@@ -85,10 +85,10 @@ GameBoard.prototype.clickOnSquare= function(column, row) {
 GameBoard.prototype.initializePieces = function() {
 	for (var column = 0; column < 8; column+=2) {
 		this.pieces.push(new Checker(column, 1, "red", 1, false));
-		this.pieces.push(new Checker(column, 5, "black", -1, true));
+		this.pieces.push(new Checker(column, 5, "black", -1, false));
 		this.pieces.push(new Checker(column, 7, "black", -1, false));
 		this.pieces.push(new Checker(column+1, 0, "red", 1, false));
-		this.pieces.push(new Checker(column+1, 2, "red", 1, true));
+		this.pieces.push(new Checker(column+1, 2, "red", 1, false));
 		this.pieces.push(new Checker(column+1, 6, "black", -1, false));
 	}
 	//also set first turn?
@@ -320,6 +320,7 @@ var a_canvas = document.getElementById("a");
 var checkBoard = new GameBoard(a_canvas);
 checkBoard.initializePieces();
 checkBoard.draw();
+
 
 /*
 Rules: 	-pieces move to the spaces diagonally in front of them
