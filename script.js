@@ -6,6 +6,29 @@ to-do list:
 -3D display
 */
 
+var is3D = true;
+if (is3D) {
+//set up 3D perspective
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
+	camera.position.set(1.5, 1.0, 2.0);
+	camera.lookAt(scene.position);
+
+	var geometry = new THREE.BoxGeometry(1.0 , 0.25, 2.0);
+	var material = new THREE.MeshBasicMaterial();
+	//material.skinning = true;
+	var mesh1 = new THREE.Mesh(geometry, material);
+	scene.add(mesh1);
+	mesh1.position.set(-1.0, 0, 0);
+	var mesh2 = new THREE.Mesh(geometry, material);
+	scene.add(mesh2);
+
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize(window.innerWidth - 40 , window.innerHeight -40);
+	document.body.appendChild(renderer.domElement );
+
+	renderer.render(scene, camera);
+} else {
 // draw the checkerboard
 function GameBoard(canvas) {
 	var gb = this;
@@ -17,6 +40,7 @@ function GameBoard(canvas) {
 	this.moveType = null;
 	this.currentTurn = "red";
 	this.winner = null;
+
 	//how to select & move pieces
 	canvas.addEventListener('click', function(evt) {
 		if (gb.hasGameEnded()) {
@@ -61,6 +85,61 @@ function GameBoard(canvas) {
 		
 	});
 } 
+
+//draw all squares and pieces
+GameBoard.prototype.draw = function() {
+	//blank slate
+	this.context.fillStyle = "white";
+	this.context.fillRect(0, 0, this.size, this.size);
+	//draw squares
+	var b = false;
+	this.context.fillStyle = "grey";
+	for (var ix = 0; ix < 8; ix++) {
+	 	for (var iy = 0; iy < 8; iy++) {
+			if (b) {
+				this.context.fillRect(ix*this.size/8, iy*this.size/8, this.size/8, this.size/8);
+			}
+			b = !b;
+		}
+		b = !b;
+	}
+	if (this.selectedPiece) {
+		this.context.fillStyle = "green";
+		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
+	}
+	//draw current pieces
+	for (var i = 0; i < this.pieces.length; i++) {
+		this.drawPiece(this.pieces[i]);
+	}
+	//this.context.fillStyle = "blue";
+	//this.context.fillRect(0, 0, this.size, this.size);
+};
+
+GameBoard.prototype.drawPiece = function(checker) {
+	if ((checker.color == "red") && (this.currentTurn == "red")) {
+		this.context.fillStyle = "red";
+	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
+		this.context.fillStyle = "tomato";
+	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
+		this.context.fillStyle = "black";
+	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
+		this.context.fillStyle = "darkslategrey";
+	}
+	this.context.beginPath();
+	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
+	this.context.closePath();
+	this.context.fill();
+	this.context.strokeStyle = "black";
+	this.context.stroke();
+	if (checker.isKing) {
+		this.context.beginPath();
+		this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/20), 0, 2*Math.PI);
+		this.context.closePath();
+		this.context.fill();
+		this.context.strokeStyle = "white";
+		this.context.stroke();
+	}
+}
 
 //click -> select a new piece, deselect piece, or move slected piece
 GameBoard.prototype.clickOnSquare= function(column, row) {
@@ -124,14 +203,9 @@ GameBoard.prototype.deselect = function() {
 	this.draw();
 }
 
+
 //return true if either side has won, and set victory color accordingly; otherwise, false
 GameBoard.prototype.hasGameEnded = function() {
-	/*
-	if (this.selectedPiece) {
-		this.winner = "black";
-		return true;
-	}
-	*/
 	var firstColor = this.pieces[0].color;
 	console.log("firstColor = " + firstColor);
 	for (var i = 0; i <this.pieces.length; i++) {
@@ -248,35 +322,6 @@ GameBoard.prototype.movePiece = function(column, row) {
 	}
 };
 
-//draw all squares and pieces
-GameBoard.prototype.draw = function() {
-	//blank slate
-	this.context.fillStyle = "white";
-	this.context.fillRect(0, 0, this.size, this.size);
-	//draw squares
-	var b = false;
-	this.context.fillStyle = "grey";
-	for (var ix = 0; ix < 8; ix++) {
-	 	for (var iy = 0; iy < 8; iy++) {
-			if (b) {
-				this.context.fillRect(ix*this.size/8, iy*this.size/8, this.size/8, this.size/8);
-			}
-			b = !b;
-		}
-		b = !b;
-	}
-	if (this.selectedPiece) {
-		this.context.fillStyle = "green";
-		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
-	}
-	//draw current pieces
-	for (var i = 0; i < this.pieces.length; i++) {
-		this.drawPiece(this.pieces[i]);
-	}
-	//this.context.fillStyle = "blue";
-	//this.context.fillRect(0, 0, this.size, this.size);
-};
-
 function Checker(column, row, color, direction, king) {
 	this.column = column;
 	this.row = row;
@@ -286,41 +331,13 @@ function Checker(column, row, color, direction, king) {
 	//positive 1 means down the y-axis, negative 1 means up
 }
 
-
-GameBoard.prototype.drawPiece = function(checker) {
-	if ((checker.color == "red") && (this.currentTurn == "red")) {
-		this.context.fillStyle = "red";
-	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
-		this.context.fillStyle = "tomato";
-	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
-		this.context.fillStyle = "black";
-	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
-		this.context.fillStyle = "darkslategrey";
-	}
-	this.context.beginPath();
-	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
-	this.context.closePath();
-	this.context.fill();
-	this.context.strokeStyle = "black";
-	this.context.stroke();
-	if (checker.isKing) {
-		this.context.beginPath();
-		this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/20), 0, 2*Math.PI);
-		this.context.closePath();
-		this.context.fill();
-		this.context.strokeStyle = "white";
-		this.context.stroke();
-	}
-	
-};
-
 //------------------------------------------
 // Set up!
 var a_canvas = document.getElementById("a");
 var checkBoard = new GameBoard(a_canvas);
 checkBoard.initializePieces();
 checkBoard.draw();
-
+}
 
 /*
 Rules: 	-pieces move to the spaces diagonally in front of them
