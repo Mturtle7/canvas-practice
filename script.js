@@ -89,6 +89,9 @@ function GameBoard(canvas) {
 
 //draw all squares and pieces
 GameBoard.prototype.draw = function() {
+	if (!this.context) { //used for 'invisible' test boards
+		return;
+	}
 	//blank slate
 	this.context.fillStyle = "white";
 	this.context.fillRect(0, 0, this.size, this.size);
@@ -295,6 +298,7 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 		console.log("moving piece");
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
+		console.log("context = " + this.context);
 		this.draw();
 		this.moveType = "jump";
 	} else {

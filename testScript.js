@@ -4,11 +4,9 @@ function test(expected, actual) {
 		console.trace();
 		throw "*sad trombone* " + "expected value = " + expected + " actual value = " + actual;
 	} else {
-		console.log("test successful");
+		//console.log("test successful");
 	}
 }
-
-
 
 function testGameBoard() {
 	// Set up!
@@ -56,7 +54,7 @@ function testCanStepTo() {
 	actual = checkBoard.canStepTo(checkBoard.selectedPiece, 3, 2);
 	test(true, actual);
 }
-//testCanStepTo();
+testCanStepTo();
 
 function testCanJumpTo() {
 	
@@ -93,7 +91,7 @@ function testCanJumpTo() {
 	test(false, actual);
 	
 }
-//testCanJumpTo();
+testCanJumpTo();
 
 function testMovePiece() {
 	//set up
@@ -102,7 +100,6 @@ function testMovePiece() {
 	var checkBoard = new GameBoard(test_canvas);
 	checkBoard.pieces.push(new Checker(2, 1, "red", 1, false));
 	checkBoard.pieces.push(new Checker(3, 2, "black", -1, false));
-	
 	
 	//test select enforcer
 	checkBoard.movePiece(4, 3);
@@ -134,6 +131,7 @@ function testMovePiece() {
 	test(true, actual);
 
 	//test step
+	checkBoard.moveType = null;
 	checkBoard.movePiece(0, 1);
 	if (checkBoard.getPiece(0, 1)) {
 		actual = true;
