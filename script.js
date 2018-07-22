@@ -5,8 +5,8 @@ to-do list:
 -must jump if able (?)
 -3D display
 */
-
-var is3D = true;
+/*
+var is3D = false;
 if (is3D) {
 //set up 3D perspective
 	var scene = new THREE.Scene();
@@ -29,6 +29,7 @@ if (is3D) {
 
 	renderer.render(scene, camera);
 } else {
+	*/
 // draw the checkerboard
 function GameBoard(canvas) {
 	var gb = this;
@@ -303,6 +304,10 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 
 //jump, step, or do nothing
 GameBoard.prototype.movePiece = function(column, row) {
+	if (!this.selectedPiece) {
+		console.log("cannot move piece - no piece selected");
+		return;
+	}
 	var movingPiece = this.selectedPiece;
 	if (this.currentTurn != movingPiece.color) {
 		console.log("not " + movingPiece.color + "'s turn to move")
@@ -337,7 +342,7 @@ var a_canvas = document.getElementById("a");
 var checkBoard = new GameBoard(a_canvas);
 checkBoard.initializePieces();
 checkBoard.draw();
-}
+//}
 
 /*
 Rules: 	-pieces move to the spaces diagonally in front of them
