@@ -1,10 +1,13 @@
+var numberPassed = 0, numberTests = 0;
 //Checkers unit test
 function test(expected, actual) {
+	numberTests++;
 	if (expected !== actual) {
 		console.trace();
 		throw "*sad trombone* " + "expected value = " + expected + " actual value = " + actual;
 	} else {
-		//console.log("test successful");
+		numberPassed++;
+		//console.log("test" + numberTests + "successful");
 	}
 }
 
@@ -41,6 +44,22 @@ function testGetPiece() {
 	}
 	test(true, actual);
 }
+
+function testRemovePiece() {
+	// Set up!
+	var actual;
+	var test_canvas = {width: 8, height: 8, getContext: function () {}, addEventListener: function () {}};
+	var checkBoard = new GameBoard(test_canvas);
+	checkBoard.pieces.push(new Checker(2, 1, "red", 1, false));
+	checkBoard.removePiece(2, 1);
+	if (checkBoard.getPiece(2, 1)) {
+		actual = false;
+	} else {
+		actual = true;
+	}
+	test(true, actual);
+}
+testRemovePiece();
 
 function testCanStepTo() {
 	// Set up!
@@ -157,4 +176,21 @@ function testMovePiece() {
 	test(true, actual);
 }
 testMovePiece();
+
+function testHasGameEnded() {
+	//set up
+	var actual;
+	var test_canvas = {width: 8, height: 8, getContext: function () {}, addEventListener: function () {}};
+	var checkBoard = new GameBoard(test_canvas);
+	checkBoard.pieces.push(new Checker(2, 1, "red", 1, false));
+	checkBoard.pieces.push(new Checker(3, 2, "black", -1, false));
+	actual = checkBoard.hasGameEnded();
+	test(false, actual);
+	checkBoard.removePiece(3, 2);
+	actual = checkBoard.hasGameEnded();
+	test(true, actual);
+}
+testHasGameEnded();
+
+console.log("total: " + numberPassed + " out of " + numberTests + " unit tests passed")
 
