@@ -1,5 +1,7 @@
+//Checkers Unit Tests
+
 var numberPassed = 0, numberTests = 0;
-//Checkers unit test
+
 function test(expected, actual) {
 	numberTests++;
 	if (expected !== actual) {

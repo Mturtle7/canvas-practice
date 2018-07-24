@@ -5,33 +5,10 @@ to-do list:
 -must jump if able (?)
 -3D display
 */
-/*
-var is3D = false;
-if (is3D) {
-//set up 3D perspective
-	var scene = new THREE.Scene();
-	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
-	camera.position.set(1.5, 1.0, 2.0);
-	camera.lookAt(scene.position);
 
-	var geometry = new THREE.BoxGeometry(1.0 , 0.25, 2.0);
-	var material = new THREE.MeshBasicMaterial();
-	//material.skinning = true;
-	var mesh1 = new THREE.Mesh(geometry, material);
-	scene.add(mesh1);
-	mesh1.position.set(-1.0, 0, 0);
-	var mesh2 = new THREE.Mesh(geometry, material);
-	scene.add(mesh2);
-
-	var renderer = new THREE.WebGLRenderer();
-	renderer.setSize(window.innerWidth - 40 , window.innerHeight -40);
-	document.body.appendChild(renderer.domElement );
-
-	renderer.render(scene, camera);
-} else {
-	*/
 // draw the checkerboard
 function GameBoard(canvas) {
+	console.log("setting up 2D board");
 	var gb = this;
 	this.canvas = canvas;
 	this.context = canvas.getContext("2d");
@@ -342,11 +319,38 @@ function Checker(column, row, color, direction, king) {
 
 //------------------------------------------
 // Set up!
-var a_canvas = document.getElementById("a");
-var checkBoard = new GameBoard(a_canvas);
-checkBoard.initializePieces();
-checkBoard.draw();
-//}
+var is3D = false;
+if (is3D == true) {
+	//set up 3D perspective
+	console.log("setting up 3D board")
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
+	camera.position.set(1.5, 1.0, 2.0);
+	camera.lookAt(scene.position);
+
+	var geometry = new THREE.BoxGeometry(1.0 , 0.25, 2.0);
+	var material = new THREE.MeshBasicMaterial();
+	//material.skinning = true;
+	var mesh1 = new THREE.Mesh(geometry, material);
+	scene.add(mesh1);
+	mesh1.position.set(-1.0, 0, 0);
+	var mesh2 = new THREE.Mesh(geometry, material);
+	scene.add(mesh2);
+
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize(window.innerWidth - 40 , window.innerHeight -40);
+	document.body.appendChild(renderer.domElement );
+
+	renderer.render(scene, camera);
+} else {	
+	//set up 2D board
+	var a_canvas = document.getElementById("a");
+	var checkBoard = new GameBoard(a_canvas);
+	checkBoard.initializePieces();
+	checkBoard.draw();
+}
+
+
 
 /*
 Rules: 	-pieces move to the spaces diagonally in front of them
