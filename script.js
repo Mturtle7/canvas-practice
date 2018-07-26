@@ -319,7 +319,7 @@ GameBoard.prototype.draw3D = function() {
 
 	//set camera looking down at board from lower right corner
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
-	camera.position.set(1.5, 1.0, 2.0);
+	camera.position.set(2.0, 1.0, 0.0);
 	camera.lookAt(scene.position);
 
 	//make blank box @ scene center
@@ -347,12 +347,34 @@ GameBoard.prototype.draw3D = function() {
 		b = !b;
 	}
 
+	//draw current pieces
+	for (var i = 0; i < this.pieces.length; i++) {
+		this.draw3DPiece(this.pieces[i], scene);
+	}
+
 	//render to fit inside window
 	var renderer = new THREE.WebGLRenderer();
 	renderer.setSize(window.innerWidth - 40 , window.innerHeight -40);
 	document.body.appendChild(renderer.domElement );
 
 	renderer.render(scene, camera);
+}
+
+GameBoard.prototype.draw3DPiece = function(checker, scene) {
+	var pieceGeometry = new THREE.CylinderGeometry(.12, .12, .05, 16);
+	var pieceMaterial = new THREE.MeshBasicMaterial();
+	if ((checker.color == "red") && (this.currentTurn == "red")) {
+		pieceMaterial.color.set("red");
+	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
+		pieceMaterial.color.set("tomato");
+	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
+		pieceMaterial.color.set("black");
+	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
+		pieceMaterial.color.set("darkslategrey");
+	}
+	var newPiece = new THREE.Mesh(pieceGeometry, pieceMaterial);
+	scene.add(newPiece);
+	newPiece.position.set((checker.column-4)/4 +.125, 0.12, (checker.row-4)/4 + .125);
 }
 
 //------------------------------------------
@@ -363,6 +385,7 @@ var checkBoard = new GameBoard(a_canvas);
 var is3D = true;
 if (is3D == true) {
 	//console.log("setting up 3D board")
+	checkBoard.initializePieces();
 	checkBoard.draw3D();
 } else {	
 	//console.log("setting up 2D board")
