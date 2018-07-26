@@ -322,19 +322,30 @@ GameBoard.prototype.draw3D = function() {
 	camera.position.set(1.5, 1.0, 2.0);
 	camera.lookAt(scene.position);
 
-	//make board base @ scene center, 2*2 square w/ .2 height -> box
+	//make blank box @ scene center
 	var baseGeometry = new THREE.BoxGeometry(2.0 , 0.2, 2.0);
 	var whiteMaterial = new THREE.MeshBasicMaterial( {color: 0xFFFFFF, side: THREE.DoubleSide} );
 	var mesh1 = new THREE.Mesh(baseGeometry, whiteMaterial);
 	scene.add(mesh1);
 
-	//make board surface
-	var surfaceGeometry =  new THREE.PlaneGeometry(1.0, 1.0)
+	//draw grey squares
+	var surfaceGeometry =  new THREE.PlaneGeometry(0.25, 0.25)
 	var greyMaterial = new THREE.MeshBasicMaterial( {color: 0x808080, side: THREE.DoubleSide} );
-	var mesh2 = new THREE.Mesh(surfaceGeometry, greyMaterial);
-	scene.add(mesh2);
-	mesh2.position.set(-.5, .11, -.5);
-	mesh2.rotateX(Math.PI/2);
+
+	var b = false;
+	var newSquare;
+	for (var ix = -4; ix < 4; ix++) {
+	 	for (var iy = -4; iy < 4; iy++) {
+			if (b) {
+				newSquare = new THREE.Mesh(surfaceGeometry, greyMaterial);
+				scene.add(newSquare);
+				newSquare.position.set((ix/4 + .125), 0.11, (iy/4 + .125));
+				newSquare.rotateX(Math.PI/2);
+			}
+			b = !b;
+		}
+		b = !b;
+	}
 
 	//render to fit inside window
 	var renderer = new THREE.WebGLRenderer();
