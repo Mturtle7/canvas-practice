@@ -30,7 +30,7 @@ function GameBoard(canvas) {
 		var column = Math.floor(x/(gb.size/8));
 		var row = Math.floor(y/(gb.size/8));
 		
-		//alert("got column = " + column + ", row = " + row);
+		//console.log("got column = " + column + ", row = " + row);
 		gb.clickOnSquare(column, row);
 		
 	});
@@ -324,13 +324,16 @@ GameBoard.prototype.draw3D = function() {
 
 	//make blank box @ scene center
 	var baseGeometry = new THREE.BoxGeometry(2.0 , 0.2, 2.0);
-	var whiteMaterial = new THREE.MeshBasicMaterial( {color: 0xFFFFFF, side: THREE.DoubleSide} );
+	var whiteMaterial = new THREE.MeshBasicMaterial( {color: "white", side: THREE.DoubleSide} );
 	var mesh1 = new THREE.Mesh(baseGeometry, whiteMaterial);
 	scene.add(mesh1);
+	var baseEdges = new THREE.EdgesGeometry(baseGeometry);
+	var baseLines = new THREE.LineSegments(baseEdges, new THREE.LineBasicMaterial( {color: "black"}));
+	scene.add(baseLines);
 
 	//draw grey squares
 	var surfaceGeometry =  new THREE.PlaneGeometry(0.25, 0.25)
-	var greyMaterial = new THREE.MeshBasicMaterial( {color: 0x808080, side: THREE.DoubleSide} );
+	var greyMaterial = new THREE.MeshBasicMaterial( {color: "grey", side: THREE.DoubleSide} );
 
 	var b = false;
 	var newSquare;
@@ -347,6 +350,9 @@ GameBoard.prototype.draw3D = function() {
 		b = !b;
 	}
 
+	//test selector
+	this.selectedPiece = this.pieces[0];
+
 	//draw current pieces
 	for (var i = 0; i < this.pieces.length; i++) {
 		this.draw3DPiece(this.pieces[i], scene);
@@ -361,20 +367,38 @@ GameBoard.prototype.draw3D = function() {
 }
 
 GameBoard.prototype.draw3DPiece = function(checker, scene) {
-	var pieceGeometry = new THREE.CylinderGeometry(.12, .12, .05, 16);
+	//create frame & material; set material color based on team, turn, and selected piece
+	var pieceGeometry = new THREE.CylinderGeometry(.1, .1, .03, 16);
 	var pieceMaterial = new THREE.MeshBasicMaterial();
-	if ((checker.color == "red") && (this.currentTurn == "red")) {
-		pieceMaterial.color.set("red");
-	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
-		pieceMaterial.color.set("tomato");
-	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
-		pieceMaterial.color.set("black");
-	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
-		pieceMaterial.color.set("darkslategrey");
+	if (checker.color == "red") {
+		if (checker == this.selectedPiece) {
+			pieceMaterial.color.set("purple");
+		} else if (this.currentTurn == "red") {
+			pieceMaterial.color.set("red");
+		} else if (this.currentTurn == "black") {
+			pieceMaterial.color.set("tomato");
+		}
+	} else if (checker.color == "black" ) {
+		if (checker == this.selectedPiece) {
+		 	pieceMaterial.color.set("blue");
+		} else if (this.currentTurn == "black") {
+			pieceMaterial.color.set("black");
+		} else if (this.currentTurn == "red") {
+			pieceMaterial.color.set("darkslategrey");
+		}
 	}
+	//draw piece
 	var newPiece = new THREE.Mesh(pieceGeometry, pieceMaterial);
 	scene.add(newPiece);
+
+	//draw piece outline
+	var pieceEdges = new THREE.EdgesGeometry(pieceGeometry);
+	var pieceLines = new THREE.LineSegments(pieceEdges, new THREE.LineBasicMaterial( {color: "black"}));
+	scene.add(pieceLines);
+
+	//move piece & outline
 	newPiece.position.set((checker.column-4)/4 +.125, 0.12, (checker.row-4)/4 + .125);
+	pieceLines.position.set((checker.column-4)/4 +.125, 0.12, (checker.row-4)/4 + .125);
 }
 
 //------------------------------------------
