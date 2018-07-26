@@ -25,7 +25,7 @@ function testGameBoard() {
 	}
 	test(true, actual);
 }
-testGameBoard();
+
 
 function testGetPiece() {
 	// Set up!
@@ -61,7 +61,7 @@ function testRemovePiece() {
 	}
 	test(true, actual);
 }
-testRemovePiece();
+
 
 function testCanStepTo() {
 	// Set up!
@@ -91,7 +91,7 @@ function testCanStepTo() {
 	actual = checkBoard.canStepTo(checkBoard.selectedPiece, 3, 2);
 	test(true, actual);
 }
-testCanStepTo();
+
 
 function testCanJumpTo() {
 	
@@ -128,7 +128,7 @@ function testCanJumpTo() {
 	test(false, actual);
 	
 }
-testCanJumpTo();
+
 
 function testMovePiece() {
 	//set up
@@ -177,7 +177,7 @@ function testMovePiece() {
 	}
 	test(true, actual);
 }
-testMovePiece();
+
 
 function testHasGameEnded() {
 	//set up
@@ -192,7 +192,13 @@ function testHasGameEnded() {
 	actual = checkBoard.hasGameEnded();
 	test(true, actual);
 }
+/*
+testGameBoard();
+testRemovePiece();
+testCanStepTo();
+testCanJumpTo();
+testMovePiece();
 testHasGameEnded();
-
 console.log("total: " + numberPassed + " out of " + numberTests + " unit tests passed")
+*/
 

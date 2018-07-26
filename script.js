@@ -8,7 +8,6 @@ to-do list:
 
 // draw the checkerboard
 function GameBoard(canvas) {
-	console.log("setting up 2D board");
 	var gb = this;
 	this.canvas = canvas;
 	this.context = canvas.getContext("2d");
@@ -64,64 +63,6 @@ function GameBoard(canvas) {
 	});
 } 
 
-//draw all squares and pieces
-GameBoard.prototype.draw = function() {
-	if (!this.context) { //used for 'invisible' test boards
-		return;
-	}
-	//blank slate
-	this.context.fillStyle = "white";
-	this.context.fillRect(0, 0, this.size, this.size);
-	//draw squares
-	var b = false;
-	this.context.fillStyle = "grey";
-	for (var ix = 0; ix < 8; ix++) {
-	 	for (var iy = 0; iy < 8; iy++) {
-			if (b) {
-				this.context.fillRect(ix*this.size/8, iy*this.size/8, this.size/8, this.size/8);
-			}
-			b = !b;
-		}
-		b = !b;
-	}
-	if (this.selectedPiece) {
-		this.context.fillStyle = "green";
-		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
-	}
-	//draw current pieces
-	for (var i = 0; i < this.pieces.length; i++) {
-		this.drawPiece(this.pieces[i]);
-	}
-	//this.context.fillStyle = "blue";
-	//this.context.fillRect(0, 0, this.size, this.size);
-};
-
-GameBoard.prototype.drawPiece = function(checker) {
-	if ((checker.color == "red") && (this.currentTurn == "red")) {
-		this.context.fillStyle = "red";
-	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
-		this.context.fillStyle = "tomato";
-	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
-		this.context.fillStyle = "black";
-	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
-		this.context.fillStyle = "darkslategrey";
-	}
-	this.context.beginPath();
-	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
-	this.context.closePath();
-	this.context.fill();
-	this.context.strokeStyle = "black";
-	this.context.stroke();
-	if (checker.isKing) {
-		this.context.beginPath();
-		this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/20), 0, 2*Math.PI);
-		this.context.closePath();
-		this.context.fill();
-		this.context.strokeStyle = "white";
-		this.context.stroke();
-	}
-}
-
 //click -> select a new piece, deselect piece, or move slected piece
 GameBoard.prototype.clickOnSquare= function(column, row) {
 	var target = this.getPiece(column, row);
@@ -130,7 +71,7 @@ GameBoard.prototype.clickOnSquare= function(column, row) {
 		if (target && (target.color == this.currentTurn) && (!this.moveType)) {
 			console.log("piece selected");
 			this.selectedPiece = this.getPiece(column, row);
-			this.draw();
+			this.draw2D();
 		} else {
 			console.log("cannot select")
 		}
@@ -181,7 +122,7 @@ GameBoard.prototype.removePiece = function (column, row) {
 GameBoard.prototype.deselect = function() {
 	//console.log("deselecting");
 	this.selectedPiece = null;
-	this.draw();
+	this.draw2D();
 }
 
 
@@ -276,7 +217,7 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		console.log("context = " + this.context);
-		this.draw();
+		this.draw2D();
 		this.moveType = "jump";
 	} else {
 		console.log('cannot jump piece to ' + column + ', ' + row);
@@ -317,37 +258,105 @@ function Checker(column, row, color, direction, king) {
 	//positive 1 means down the y-axis, negative 1 means up
 }
 
-//------------------------------------------
-// Set up!
-var is3D = false;
-if (is3D == true) {
-	//set up 3D perspective
-	console.log("setting up 3D board")
+//draw all squares and pieces
+GameBoard.prototype.draw2D = function() {
+	if (!this.context) { //used for 'invisible' test boards
+		return;
+	}
+	//blank slate
+	this.context.fillStyle = "white";
+	this.context.fillRect(0, 0, this.size, this.size);
+	//draw squares
+	var b = false;
+	this.context.fillStyle = "grey";
+	for (var ix = 0; ix < 8; ix++) {
+	 	for (var iy = 0; iy < 8; iy++) {
+			if (b) {
+				this.context.fillRect(ix*this.size/8, iy*this.size/8, this.size/8, this.size/8);
+			}
+			b = !b;
+		}
+		b = !b;
+	}
+	if (this.selectedPiece) {
+		this.context.fillStyle = "green";
+		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
+	}
+	//draw current pieces
+	for (var i = 0; i < this.pieces.length; i++) {
+		this.draw2DPiece(this.pieces[i]);
+	}
+};
+
+GameBoard.prototype.draw2DPiece = function(checker) {
+	if ((checker.color == "red") && (this.currentTurn == "red")) {
+		this.context.fillStyle = "red";
+	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
+		this.context.fillStyle = "tomato";
+	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
+		this.context.fillStyle = "black";
+	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
+		this.context.fillStyle = "darkslategrey";
+	}
+	this.context.beginPath();
+	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
+	this.context.closePath();
+	this.context.fill();
+	this.context.strokeStyle = "black";
+	this.context.stroke();
+	if (checker.isKing) {
+		this.context.beginPath();
+		this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/20), 0, 2*Math.PI);
+		this.context.closePath();
+		this.context.fill();
+		this.context.strokeStyle = "white";
+		this.context.stroke();
+	}
+}
+
+GameBoard.prototype.draw3D = function() {
 	var scene = new THREE.Scene();
+
+	//set camera looking down at board from lower right corner
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
 	camera.position.set(1.5, 1.0, 2.0);
 	camera.lookAt(scene.position);
 
-	var geometry = new THREE.BoxGeometry(1.0 , 0.25, 2.0);
-	var material = new THREE.MeshBasicMaterial();
-	//material.skinning = true;
-	var mesh1 = new THREE.Mesh(geometry, material);
+	//make board base @ scene center, 2*2 square w/ .2 height -> box
+	var baseGeometry = new THREE.BoxGeometry(2.0 , 0.2, 2.0);
+	var whiteMaterial = new THREE.MeshBasicMaterial( {color: 0xFFFFFF, side: THREE.DoubleSide} );
+	var mesh1 = new THREE.Mesh(baseGeometry, whiteMaterial);
 	scene.add(mesh1);
-	mesh1.position.set(-1.0, 0, 0);
-	var mesh2 = new THREE.Mesh(geometry, material);
-	scene.add(mesh2);
 
+	//make board surface
+	var surfaceGeometry =  new THREE.PlaneGeometry(1.0, 1.0)
+	var greyMaterial = new THREE.MeshBasicMaterial( {color: 0x808080, side: THREE.DoubleSide} );
+	var mesh2 = new THREE.Mesh(surfaceGeometry, greyMaterial);
+	scene.add(mesh2);
+	mesh2.position.set(-.5, .11, -.5);
+	mesh2.rotateX(Math.PI/2);
+
+	//render to fit inside window
 	var renderer = new THREE.WebGLRenderer();
 	renderer.setSize(window.innerWidth - 40 , window.innerHeight -40);
 	document.body.appendChild(renderer.domElement );
 
 	renderer.render(scene, camera);
+}
+
+//------------------------------------------
+// Set up!
+var a_canvas = document.getElementById("a");
+var checkBoard = new GameBoard(a_canvas);
+
+var is3D = true;
+if (is3D == true) {
+	//console.log("setting up 3D board")
+	checkBoard.draw3D();
 } else {	
-	//set up 2D board
-	var a_canvas = document.getElementById("a");
-	var checkBoard = new GameBoard(a_canvas);
+	//console.log("setting up 2D board")
 	checkBoard.initializePieces();
-	checkBoard.draw();
+	checkBoard.draw2D();
 }
 
 
