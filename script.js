@@ -24,14 +24,23 @@ function GameBoard(renderer) {
 		if (gb.hasGameEnded()) {
 			return;
 		}
+		//coords of click within 2d canvas
 		var rect = gb.canvas.getBoundingClientRect();
 		var x = evt.clientX - rect.left;
 		var y = evt.clientY - rect.top;
-		var column = Math.floor(x/(gb.size/8));
-		var row = Math.floor(y/(gb.size/8));
+		//coords of board within 2d canvas
+		var boardSize = 0.9 * gb.size;
+		var boardCornerX = (gb.canvas.width/2) - (boardSize/2);
+		var boardCornerY = (gb.canvas.height/2) - (boardSize/2);
+
+		if ((x > boardCornerX) && (x < boardCornerX + boardSize) && (y > boardCornerY) && (y < boardCornerY + boardSize)) {
+			//coords of click within board
+			var column = Math.floor((x-boardCornerX)/(boardSize/8));
+			var row = Math.floor((y-boardCornerY)/(boardSize/8));
+			console.log("got column = " + column + ", row = " + row);
+			gb.clickOnSquare(column, row);
+		}
 		
-		console.log("got column = " + column + ", row = " + row);
-		gb.clickOnSquare(column, row);
 		
 	});
 	this.canvas.addEventListener('dblclick', function(evt) {
@@ -46,7 +55,7 @@ function GameBoard(renderer) {
 			gb.context.fillText(gb.winner + " victory!", gb.size/2, gb.size/2);
 			return;
 		}
-		*/ 
+		
 		if (gb.moveType) {
 			if (gb.currentTurn == "red") {
 				gb.currentTurn = "black";
@@ -59,7 +68,7 @@ function GameBoard(renderer) {
 			}
 			gb.moveType = null;
 		}
-		
+		*/
 	});
 	
 } 
@@ -264,7 +273,7 @@ GameBoard.prototype.draw3D = function() {
 
 	//set camera looking down at board from lower right corner
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
-	camera.position.set(1.25, 1.25, 0);
+	camera.position.set(0, 1.5, 0);
 	camera.lookAt(scene.position);
 
 	//make blank box @ scene center
