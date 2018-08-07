@@ -7,34 +7,35 @@ to-do list:
 */
 
 // draw the checkerboard
-function GameBoard(canvas) {
+function GameBoard(renderer) {
 	var gb = this;
-	this.canvas = canvas;
-	this.context = canvas.getContext("2d");
-	this.size = Math.min(canvas.width, canvas.height);
+	this.canvas = renderer.domElement;
+	this.context = renderer.getContext();
+	this.size = Math.min(this.canvas.width, this.canvas.height);
 	this.pieces = [];
 	this.selectedPiece = null;
 	this.moveType = null;
 	this.currentTurn = "red";
 	this.winner = null;
 
+	
 	//how to select & move pieces
-	canvas.addEventListener('click', function(evt) {
+	this.canvas.addEventListener('click', function(evt) {
 		if (gb.hasGameEnded()) {
-			//console.log("game has ended");
 			return;
 		}
-		var rect = canvas.getBoundingClientRect();
+		var rect = gb.canvas.getBoundingClientRect();
 		var x = evt.clientX - rect.left;
 		var y = evt.clientY - rect.top;
 		var column = Math.floor(x/(gb.size/8));
 		var row = Math.floor(y/(gb.size/8));
 		
-		//console.log("got column = " + column + ", row = " + row);
+		console.log("got column = " + column + ", row = " + row);
 		gb.clickOnSquare(column, row);
 		
 	});
-	canvas.addEventListener('dblclick', function(evt) {
+	this.canvas.addEventListener('dblclick', function(evt) {
+		/*
 		if (gb.hasGameEnded()) {
 			gb.context.fillStyle = "green";
 			gb.context.fillRect(0, 0, gb.size, gb.size);
@@ -43,10 +44,9 @@ function GameBoard(canvas) {
 			gb.context.font = "40px serif";
 			gb.context.textAlign = "center";
 			gb.context.fillText(gb.winner + " victory!", gb.size/2, gb.size/2);
-			//console.log("game has ended");
 			return;
 		}
-		 
+		*/ 
 		if (gb.moveType) {
 			if (gb.currentTurn == "red") {
 				gb.currentTurn = "black";
@@ -61,6 +61,7 @@ function GameBoard(canvas) {
 		}
 		
 	});
+	
 } 
 
 //click -> select a new piece, deselect piece, or move slected piece
@@ -71,7 +72,7 @@ GameBoard.prototype.clickOnSquare= function(column, row) {
 		if (target && (target.color == this.currentTurn) && (!this.moveType)) {
 			console.log("piece selected");
 			this.selectedPiece = this.getPiece(column, row);
-			this.draw2D();
+			this.draw3D();
 		} else {
 			console.log("cannot select")
 		}
@@ -120,9 +121,9 @@ GameBoard.prototype.removePiece = function (column, row) {
 
 //simple deselect
 GameBoard.prototype.deselect = function() {
-	//console.log("deselecting");
+	console.log("deselecting");
 	this.selectedPiece = null;
-	this.draw2D();
+	this.draw3D();
 }
 
 
@@ -145,16 +146,16 @@ GameBoard.prototype.canStepTo = function (piece, column, row) {
 	var drow = row - piece.row;
 	//console.log('dcolumn = ' + dcolumn + ', drow = ' + drow);
 	if (this.moveType != null) {
-		console.log("cannot step piece - moveType = " + this.moveType)
+		//console.log("cannot step piece - moveType = " + this.moveType)
 		return false;
 	} else if (this.getPiece(column, row)) {
-		console.log('cannot step piece - space occupied');
+		//console.log('cannot step piece - space occupied');
 		return false;
 	} else if (Math.abs(dcolumn)!=1) {
-		console.log('cannot step piece - not dcolumn 1');
+		//console.log('cannot step piece - not dcolumn 1');
 		return false;
 	} else if ((drow!=piece.rowDirection) && (!piece.isKing)) {
-		console.log('cannot step piece - drow != rowDirection ' + piece.rowDirection);
+		//console.log('cannot step piece - drow != rowDirection ' + piece.rowDirection);
 		return false;
 	} else {
 		return true;
@@ -166,16 +167,16 @@ GameBoard.prototype.canJumpTo = function (piece, column, row) {
 	var dcolumn = column - piece.column;
 	var drow = row - piece.row;
 	if (this.moveType == "step") {
-		console.log("cannot jump with piece - moveType = " + this.moveType)
+		//console.log("cannot jump with piece - moveType = " + this.moveType)
 		return false;
 	} else if (this.getPiece(column, row)) {
-		console.log('cannot jump there - space occupied');
+		//console.log('cannot jump there - space occupied');
 		return false;
 	} else if (Math.abs(dcolumn)!=2) {
-		console.log('cannot jump there - dcolumn!=2');
+		//console.log('cannot jump there - dcolumn!=2');
 		return false;
 	} else if (((drow/2)!=piece.rowDirection) && (!piece.isKing)) {
-		console.log('cannot jump there - jump is in wrong direction'); 
+		//console.log('cannot jump there - jump is in wrong direction'); 
 		return false;
 	}
 	var jumpedPiece = this.getPiece(column-(dcolumn/2), row-(drow/2));
@@ -241,7 +242,7 @@ GameBoard.prototype.movePiece = function(column, row) {
 		this.stepPiece(column, row);
 		console.log("can step");
 	} else {
-		console.log("invalid move");
+		//console.log("invalid move");
 		return;
 	}	
 	if (((movingPiece.color == "red") && (row == 7)) || ((movingPiece.color == "black") && (row == 0))) {
@@ -258,68 +259,12 @@ function Checker(column, row, color, direction, king) {
 	//positive 1 means down the y-axis, negative 1 means up
 }
 
-//draw all squares and pieces
-GameBoard.prototype.draw2D = function() {
-	if (!this.context) { //used for 'invisible' test boards
-		return;
-	}
-	//blank slate
-	this.context.fillStyle = "white";
-	this.context.fillRect(0, 0, this.size, this.size);
-	//draw squares
-	var b = false;
-	this.context.fillStyle = "grey";
-	for (var ix = 0; ix < 8; ix++) {
-	 	for (var iy = 0; iy < 8; iy++) {
-			if (b) {
-				this.context.fillRect(ix*this.size/8, iy*this.size/8, this.size/8, this.size/8);
-			}
-			b = !b;
-		}
-		b = !b;
-	}
-	if (this.selectedPiece) {
-		this.context.fillStyle = "green";
-		this.context.fillRect(this.selectedPiece.column*this.size/8, this.selectedPiece.row*this.size/8, this.size/8, this.size/8);
-	}
-	//draw current pieces
-	for (var i = 0; i < this.pieces.length; i++) {
-		this.draw2DPiece(this.pieces[i]);
-	}
-};
-
-GameBoard.prototype.draw2DPiece = function(checker) {
-	if ((checker.color == "red") && (this.currentTurn == "red")) {
-		this.context.fillStyle = "red";
-	} else if ((checker.color == "red") && (this.currentTurn == "black")) {
-		this.context.fillStyle = "tomato";
-	} else if ((checker.color == "black") && (this.currentTurn == "black")) {
-		this.context.fillStyle = "black";
-	} else if ((checker.color == "black") && (this.currentTurn == "red")) {
-		this.context.fillStyle = "darkslategrey";
-	}
-	this.context.beginPath();
-	this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/17), 0, 2*Math.PI);
-	this.context.closePath();
-	this.context.fill();
-	this.context.strokeStyle = "black";
-	this.context.stroke();
-	if (checker.isKing) {
-		this.context.beginPath();
-		this.context.arc((this.size/16)+(checker.column*(this.size/8)), (this.size/16)+(checker.row*(this.size/8)), (this.size/20), 0, 2*Math.PI);
-		this.context.closePath();
-		this.context.fill();
-		this.context.strokeStyle = "white";
-		this.context.stroke();
-	}
-}
-
 GameBoard.prototype.draw3D = function() {
 	var scene = new THREE.Scene();
 
 	//set camera looking down at board from lower right corner
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
-	camera.position.set(2.0, 1.0, 0.0);
+	camera.position.set(1.25, 1.25, 0);
 	camera.lookAt(scene.position);
 
 	//make blank box @ scene center
@@ -358,12 +303,8 @@ GameBoard.prototype.draw3D = function() {
 		this.draw3DPiece(this.pieces[i], scene);
 	}
 
-	//render to fit inside window
-	var renderer = new THREE.WebGLRenderer();
-	renderer.setSize(window.innerWidth - 40 , window.innerHeight -40);
-	document.body.appendChild(renderer.domElement );
-
-	renderer.render(scene, camera);
+	//render new drawing
+	a_renderer.render(scene, camera);
 }
 
 GameBoard.prototype.draw3DPiece = function(checker, scene) {
@@ -404,7 +345,10 @@ GameBoard.prototype.draw3DPiece = function(checker, scene) {
 //------------------------------------------
 // Set up!
 var a_canvas = document.getElementById("a");
-var checkBoard = new GameBoard(a_canvas);
+var a_renderer = new THREE.WebGLRenderer();
+a_renderer.setSize(window.innerWidth - 40 , window.innerHeight -40);
+document.body.appendChild(a_renderer.domElement );
+var checkBoard = new GameBoard(a_renderer);
 
 var is3D = true;
 if (is3D == true) {
