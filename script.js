@@ -55,7 +55,7 @@ function GameBoard(renderer) {
 			gb.context.fillText(gb.winner + " victory!", gb.size/2, gb.size/2);
 			return;
 		}
-		
+		*/
 		if (gb.moveType) {
 			if (gb.currentTurn == "red") {
 				gb.currentTurn = "black";
@@ -68,7 +68,7 @@ function GameBoard(renderer) {
 			}
 			gb.moveType = null;
 		}
-		*/
+		
 	});
 	
 } 
@@ -86,8 +86,10 @@ GameBoard.prototype.clickOnSquare= function(column, row) {
 			console.log("cannot select")
 		}
 	} else if (this.selectedPiece.column == column && this.selectedPiece.row == row) {
+		console.log("deslecting piece");
 		this.deselect();
 	} else {
+		console.log("moving piece");
 		this.movePiece(column, row);
 	} 
 }
@@ -303,9 +305,6 @@ GameBoard.prototype.draw3D = function() {
 		}
 		b = !b;
 	}
-
-	//test selector
-	this.selectedPiece = this.pieces[0];
 
 	//draw current pieces
 	for (var i = 0; i < this.pieces.length; i++) {
