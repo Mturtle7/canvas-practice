@@ -17,7 +17,7 @@ function GameBoard(renderer) {
 	this.moveType = null;
 	this.currentTurn = "red";
 	this.winner = null;
-
+	console.log("board size = " + (0.9 * this.size));
 	
 	//how to select & move pieces
 	this.canvas.addEventListener('click', function(evt) {
@@ -28,34 +28,39 @@ function GameBoard(renderer) {
 		var rect = gb.canvas.getBoundingClientRect();
 		var x = evt.clientX - rect.left;
 		var y = evt.clientY - rect.top;
-		//coords of board within 2d canvas
-		var boardSize = 0.9 * gb.size;
-		var boardCornerX = (gb.canvas.width/2) - (boardSize/2);
-		var boardCornerY = (gb.canvas.height/2) - (boardSize/2);
+		console.log("click screen coords: x = " + x + ", y = " + y);
 
-		if ((x > boardCornerX) && (x < boardCornerX + boardSize) && (y > boardCornerY) && (y < boardCornerY + boardSize)) {
-			//coords of click within board
-			var column = Math.floor((x-boardCornerX)/(boardSize/8));
-			var row = Math.floor((y-boardCornerY)/(boardSize/8));
-			console.log("got column = " + column + ", row = " + row);
-			gb.clickOnSquare(column, row);
-		}
+		//coords of board within 2d canvas
+		var TopLeftX = 258;
+		var BottomLeftX = 125;
+		var TopRightX = 509;
+		var BottomRightX = 638;
+		var TopY = 168; 
+		var BottomY = 419;
+
+		//coords of click within board 
+		var leftEdgePointX = BottomLeftX + ((TopLeftX - BottomLeftX) * ((y - BottomY)/(TopY-BottomY)));
+		var rightEdgePointX = BottomRightX + ((TopRightX - BottomRightX) * ((y - BottomY)/(TopY-BottomY)));
+		var column = Math.floor((x - leftEdgePointX)/(rightEdgePointX - leftEdgePointX) * 8);
+
+		var row = 1;
 		
+		console.log("got column = " + column + ", row = " + row);
+		gb.clickOnSquare(column, row);
+
+		//258+(-133)*(21/251) = 258 - 11 = 247
+		//(251/-133) = 21/(x-258) ; 251(x-258) = -133*21 ; (x-258) = -11 ; x = 247 x = ((-133*21)/251) +258
+		//(251/133) = 21/(x-509) ; (x-509) = 11 ; x = 520
+		//(295-247)/(520-247) = 48/273 = .18
+		//(1/8) < .18 < (2/8)
 		
 	});
 	this.canvas.addEventListener('dblclick', function(evt) {
-		/*
+		
 		if (gb.hasGameEnded()) {
-			gb.context.fillStyle = "green";
-			gb.context.fillRect(0, 0, gb.size, gb.size);
-			
-			gb.context.fillStyle = "black";
-			gb.context.font = "40px serif";
-			gb.context.textAlign = "center";
-			gb.context.fillText(gb.winner + " victory!", gb.size/2, gb.size/2);
-			return;
+			console.log("ending game");
 		}
-		*/
+		
 		if (gb.moveType) {
 			if (gb.currentTurn == "red") {
 				gb.currentTurn = "black";
@@ -99,10 +104,10 @@ GameBoard.prototype.initializePieces = function() {
 	for (var column = 0; column < 8; column+=2) {
 		this.pieces.push(new Checker(column, 1, "red", 1, false));
 		this.pieces.push(new Checker(column, 5, "black", -1, false));
-		this.pieces.push(new Checker(column, 7, "black", -1, false));
-		this.pieces.push(new Checker(column+1, 0, "red", 1, false));
-		this.pieces.push(new Checker(column+1, 2, "red", 1, false));
-		this.pieces.push(new Checker(column+1, 6, "black", -1, false));
+		//this.pieces.push(new Checker(column, 7, "black", -1, false));
+		//this.pieces.push(new Checker(column+1, 0, "red", 1, false));
+		//this.pieces.push(new Checker(column+1, 2, "red", 1, false));
+		//this.pieces.push(new Checker(column+1, 6, "black", -1, false));
 	}
 	//also set first turn?
 	this.currentTurn = "red";
@@ -229,7 +234,7 @@ GameBoard.prototype.jumpPiece = function(column, row) {
 		this.selectedPiece.column = column;
 		this.selectedPiece.row = row;
 		console.log("context = " + this.context);
-		this.draw2D();
+		this.draw3D();
 		this.moveType = "jump";
 	} else {
 		console.log('cannot jump piece to ' + column + ', ' + row);
@@ -275,7 +280,7 @@ GameBoard.prototype.draw3D = function() {
 
 	//set camera looking down at board from lower right corner
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
-	camera.position.set(0, 1.5, 0);
+	camera.position.set(0, 1.5, 1.5);
 	camera.lookAt(scene.position);
 
 	//make blank box @ scene center
