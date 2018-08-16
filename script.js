@@ -17,7 +17,8 @@ function GameBoard(renderer) {
 	this.moveType = null;
 	this.currentTurn = "red";
 	this.winner = null;
-	console.log("board size = " + (0.9 * this.size));
+	console.log("canvas width = " + this.canvas.width+ ", canvas height = " + this.canvas.height);
+	console.log("boardsize = " + (0.9*this.size));
 	
 	//how to select & move pieces
 	this.canvas.addEventListener('click', function(evt) {
@@ -31,14 +32,27 @@ function GameBoard(renderer) {
 		console.log("click screen coords: x = " + x + ", y = " + y);
 
 		//coords of board within 2d canvas
-		var TopLeftX = 258;
-		var BottomLeftX = 125;
-		var TopRightX = 509;
-		var BottomRightX = 638;
-		var TopY = 168; 
-		var BottomY = 419;
+		var boardHeight = 0.49 * gb.canvas.height;
+		var boardTopLength = 0.49 * gb.canvas.height;
+		var boardBottomLength = gb.canvas.height;
+		var sceneCenterX = gb.canvas.width/2;
+		var sceneCenterY = gb.canvas.height/2;
+		var TopLeftX = sceneCenterX - (boardTopLength/2);
+		var BottomLeftX = sceneCenterX - (boardBottomLength/2);
+		var TopRightX = TopLeftX + boardTopLength;
+		var BottomRightX = BottomLeftX + boardBottomLength;
+		var TopY = sceneCenterY - (.36 * boardHeight); 
+		var BottomY = TopY + boardHeight;
 
+		/* canvas width | canvas height | upper left | lower left | upper right | scene center
+			1083		  623			  (392, 200)   (232, 504)   (694, 197)	  (543, 308)
+			*768			 524			 (258, 168)   (126, 421)   (513, 168)    (385, 259)
+			617			  625			  (163, 200)   (8, 505)		(458, 200)	  (311, 308)
+			340			  351			  (171, 176)   (90, 114)    (2, 285)      (252, 112)
+		*/
+		
 		//coords of click within board 
+		//find column
 		var leftEdgePointX = BottomLeftX + ((TopLeftX - BottomLeftX) * ((y - BottomY)/(TopY-BottomY)));
 		var rightEdgePointX = BottomRightX + ((TopRightX - BottomRightX) * ((y - BottomY)/(TopY-BottomY)));
 		var column = Math.floor((x - leftEdgePointX)/(rightEdgePointX - leftEdgePointX) * 8);
@@ -146,7 +160,7 @@ GameBoard.prototype.deselect = function() {
 //return true if either side has won, and set victory color accordingly; otherwise, false
 GameBoard.prototype.hasGameEnded = function() {
 	var firstColor = this.pieces[0].color;
-	console.log("firstColor = " + firstColor);
+	//console.log("firstColor = " + firstColor);
 	for (var i = 0; i <this.pieces.length; i++) {
 		if (this.pieces[i].color != firstColor) {
 			return false;
@@ -291,6 +305,24 @@ GameBoard.prototype.draw3D = function() {
 	var baseEdges = new THREE.EdgesGeometry(baseGeometry);
 	var baseLines = new THREE.LineSegments(baseEdges, new THREE.LineBasicMaterial( {color: "black"}));
 	scene.add(baseLines);
+
+	//draw line for 3D event-listener testing
+	var lineTestMaterial = new THREE.LineBasicMaterial( {color: "red"});
+	var lineTestGeometry1 = new THREE.Geometry();
+	lineTestGeometry1.vertices.push(new THREE.Vector3( 2.5, 0, 0) );
+	lineTestGeometry1.vertices.push(new THREE.Vector3( -2.5, 0, 0) );
+	var lineTestGeometry2 = new THREE.Geometry();
+	lineTestGeometry2.vertices.push(new THREE.Vector3( 0, .5, 0) );
+	lineTestGeometry2.vertices.push(new THREE.Vector3( 0, -.5, 0) );
+	var lineTestGeometry3 = new THREE.Geometry();
+	lineTestGeometry3.vertices.push(new THREE.Vector3( 0, 0, 2.5) );
+	lineTestGeometry3.vertices.push(new THREE.Vector3( 0, 0, -2.5) );
+	var testLine1 = new THREE.Line(lineTestGeometry1, lineTestMaterial);
+	var testLine2 = new THREE.Line(lineTestGeometry2, lineTestMaterial);
+	var testLine3 = new THREE.Line(lineTestGeometry3, lineTestMaterial);
+	scene.add(testLine1);
+	scene.add(testLine2);
+	scene.add(testLine3);
 
 	//draw grey squares
 	var surfaceGeometry =  new THREE.PlaneGeometry(0.25, 0.25)
