@@ -41,26 +41,42 @@ function GameBoard(renderer) {
 		var BottomLeftX = sceneCenterX - (boardBottomLength/2);
 		var TopRightX = TopLeftX + boardTopLength;
 		var BottomRightX = BottomLeftX + boardBottomLength;
-		var TopY = sceneCenterY - (.36 * boardHeight); 
+		var TopY = sceneCenterY - (0.37 * boardHeight); 
 		var BottomY = TopY + boardHeight;
 
-		/* canvas width | canvas height | upper left | lower left | upper right | scene center
+		/* proportion testing table
+			canvas width | canvas height | upper left | lower left | upper right | scene center
 			1083		  623			  (392, 200)   (232, 504)   (694, 197)	  (543, 308)
-			*768			 524			 (258, 168)   (126, 421)   (513, 168)    (385, 259)
+			768			  524			  (258, 168)   (126, 421)   (513, 168)    (385, 259)
 			617			  625			  (163, 200)   (8, 505)		(458, 200)	  (311, 308)
 			340			  351			  (171, 176)   (90, 114)    (2, 285)      (252, 112)
 		*/
-		
-		//coords of click within board 
-		//find column
+
 		var leftEdgePointX = BottomLeftX + ((TopLeftX - BottomLeftX) * ((y - BottomY)/(TopY-BottomY)));
 		var rightEdgePointX = BottomRightX + ((TopRightX - BottomRightX) * ((y - BottomY)/(TopY-BottomY)));
-		var column = Math.floor((x - leftEdgePointX)/(rightEdgePointX - leftEdgePointX) * 8);
 
-		var row = 1;
-		
-		console.log("got column = " + column + ", row = " + row);
-		gb.clickOnSquare(column, row);
+		if ((y >= TopY) && (y <= BottomY) && (x >= leftEdgePointX) && (x <= rightEdgePointX)) {
+			//find column
+			var column = Math.floor(((x - leftEdgePointX)/(rightEdgePointX - leftEdgePointX)) * 8);
+
+			//find row
+			var row = -1;
+			var rowHeight = .06 * boardHeight;
+			var rowHeightChange = (boardHeight - (8 * rowHeight))/28;
+			var rowBottom = TopY + rowHeight;
+			var foundRow = false; 
+			while(foundRow == false) {
+				row++;
+				if (y < rowBottom) {
+					foundRow = true;
+				}
+				rowHeight += rowHeightChange;
+				rowBottom += rowHeight;
+			}
+			
+			console.log("got column = " + column + ", row = " + row);
+			gb.clickOnSquare(column, row);
+		}
 
 		//258+(-133)*(21/251) = 258 - 11 = 247
 		//(251/-133) = 21/(x-258) ; 251(x-258) = -133*21 ; (x-258) = -11 ; x = 247 x = ((-133*21)/251) +258
