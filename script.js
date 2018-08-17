@@ -31,7 +31,7 @@ function GameBoard(renderer) {
 		var y = evt.clientY - rect.top;
 		console.log("click screen coords: x = " + x + ", y = " + y);
 
-		//coords of board within 2d canvas
+		//coords & dimensions of board within 2d canvas
 		var boardHeight = 0.49 * gb.canvas.height;
 		var boardTopLength = 0.49 * gb.canvas.height;
 		var boardBottomLength = gb.canvas.height;
@@ -52,9 +52,9 @@ function GameBoard(renderer) {
 			340			  351			  (171, 176)   (90, 114)    (2, 285)      (252, 112)
 		*/
 
+		//coords of click within board
 		var leftEdgePointX = BottomLeftX + ((TopLeftX - BottomLeftX) * ((y - BottomY)/(TopY-BottomY)));
 		var rightEdgePointX = BottomRightX + ((TopRightX - BottomRightX) * ((y - BottomY)/(TopY-BottomY)));
-
 		if ((y >= TopY) && (y <= BottomY) && (x >= leftEdgePointX) && (x <= rightEdgePointX)) {
 			//find column
 			var column = Math.floor(((x - leftEdgePointX)/(rightEdgePointX - leftEdgePointX)) * 8);
@@ -77,20 +77,15 @@ function GameBoard(renderer) {
 			console.log("got column = " + column + ", row = " + row);
 			gb.clickOnSquare(column, row);
 		}
-
-		//258+(-133)*(21/251) = 258 - 11 = 247
-		//(251/-133) = 21/(x-258) ; 251(x-258) = -133*21 ; (x-258) = -11 ; x = 247 x = ((-133*21)/251) +258
-		//(251/133) = 21/(x-509) ; (x-509) = 11 ; x = 520
-		//(295-247)/(520-247) = 48/273 = .18
-		//(1/8) < .18 < (2/8)
-		
 	});
 	this.canvas.addEventListener('dblclick', function(evt) {
-		
+		//check if game ended
 		if (gb.hasGameEnded()) {
+			this.draw3D();
 			console.log("ending game");
+			return;
 		}
-		
+		//change turns if able
 		if (gb.moveType) {
 			if (gb.currentTurn == "red") {
 				gb.currentTurn = "black";
@@ -134,10 +129,10 @@ GameBoard.prototype.initializePieces = function() {
 	for (var column = 0; column < 8; column+=2) {
 		this.pieces.push(new Checker(column, 1, "red", 1, false));
 		this.pieces.push(new Checker(column, 5, "black", -1, false));
-		//this.pieces.push(new Checker(column, 7, "black", -1, false));
-		//this.pieces.push(new Checker(column+1, 0, "red", 1, false));
-		//this.pieces.push(new Checker(column+1, 2, "red", 1, false));
-		//this.pieces.push(new Checker(column+1, 6, "black", -1, false));
+		this.pieces.push(new Checker(column, 7, "black", -1, false));
+		this.pieces.push(new Checker(column+1, 0, "red", 1, false));
+		this.pieces.push(new Checker(column+1, 2, "red", 1, false));
+		this.pieces.push(new Checker(column+1, 6, "black", -1, false));
 	}
 	//also set first turn?
 	this.currentTurn = "red";
@@ -176,7 +171,6 @@ GameBoard.prototype.deselect = function() {
 //return true if either side has won, and set victory color accordingly; otherwise, false
 GameBoard.prototype.hasGameEnded = function() {
 	var firstColor = this.pieces[0].color;
-	//console.log("firstColor = " + firstColor);
 	for (var i = 0; i <this.pieces.length; i++) {
 		if (this.pieces[i].color != firstColor) {
 			return false;
@@ -233,7 +227,7 @@ GameBoard.prototype.canJumpTo = function (piece, column, row) {
 
 };
 
-//attampts to step a piece one space (diagonally) forward
+//attempts to step a piece one space (diagonally) forward
 GameBoard.prototype.stepPiece = function(column, row) {
 	if (!this.selectedPiece) {
 		console.log("cannot step piece - no piece selected");
@@ -250,9 +244,8 @@ GameBoard.prototype.stepPiece = function(column, row) {
 	}
 };
 
-//attampts to jump a piece (diagonally) over another, capturing it
+//attempts to jump a piece (diagonally) over another, capturing it
 GameBoard.prototype.jumpPiece = function(column, row) {
-	//will be a function for jumping, separate from stepping
 	if (!this.selectedPiece) {
 		console.log("cannot jump piece - no piece selected");
 		return;
@@ -312,7 +305,7 @@ GameBoard.prototype.draw3D = function() {
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10 );
 	camera.position.set(0, 1.5, 1.5);
 	camera.lookAt(scene.position);
-
+	
 	//make blank box @ scene center
 	var baseGeometry = new THREE.BoxGeometry(2.0 , 0.2, 2.0);
 	var whiteMaterial = new THREE.MeshBasicMaterial( {color: "white", side: THREE.DoubleSide} );
@@ -322,6 +315,7 @@ GameBoard.prototype.draw3D = function() {
 	var baseLines = new THREE.LineSegments(baseEdges, new THREE.LineBasicMaterial( {color: "black"}));
 	scene.add(baseLines);
 
+	/*
 	//draw line for 3D event-listener testing
 	var lineTestMaterial = new THREE.LineBasicMaterial( {color: "red"});
 	var lineTestGeometry1 = new THREE.Geometry();
@@ -339,6 +333,7 @@ GameBoard.prototype.draw3D = function() {
 	scene.add(testLine1);
 	scene.add(testLine2);
 	scene.add(testLine3);
+	*/
 
 	//draw grey squares
 	var surfaceGeometry =  new THREE.PlaneGeometry(0.25, 0.25)
@@ -366,6 +361,32 @@ GameBoard.prototype.draw3D = function() {
 
 	//render new drawing
 	a_renderer.render(scene, camera);
+}
+
+//display victory text for after game's end
+GameBoard.prototype.draw3DText = function() {
+	var loader = new THREE.FontLoader();
+	var textGeometry;
+	loader.load( 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.', function ( font ) {
+		textGeometry = new THREE.TextGeometry( "victory!", { 
+			font: font, 
+			size: 80,
+			height: 5,
+			curveSegments: 12,
+			bevelEnabled: true,
+			bevelThickness: 10,
+			bevelSize: 8,
+			bevelSegments: 5
+		} );
+	} );
+	var textMaterial = new THREE.MeshBasicMaterial( {color: "white", side: THREE.DoubleSide} );
+	var textMesh = new THREE.Mesh(textGeometry, textMaterial);
+	if (textMesh) {
+		scene.add(textMesh);
+		textMesh.position.set(2, 2, 2);
+		console.log("drawing text: " + textMesh.position.y);
+	}
+	camera.lookAt(textMesh.position);
 }
 
 GameBoard.prototype.draw3DPiece = function(checker, scene) {
@@ -398,7 +419,7 @@ GameBoard.prototype.draw3DPiece = function(checker, scene) {
 	var pieceLines = new THREE.LineSegments(pieceEdges, new THREE.LineBasicMaterial( {color: "black"}));
 	scene.add(pieceLines);
 
-	//move piece & outline
+	//move piece & outline to its place on the board
 	newPiece.position.set((checker.column-4)/4 +.125, 0.12, (checker.row-4)/4 + .125);
 	pieceLines.position.set((checker.column-4)/4 +.125, 0.12, (checker.row-4)/4 + .125);
 }
